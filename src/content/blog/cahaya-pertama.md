@@ -1,6 +1,6 @@
 ---
 title: "Cahaya pertama: Inisiasi ruang diam"
-description: "A comprehensive showcase of different media types including YouTube videos, animated GIFs, and various image formats in Astro blog posts"
+description: "Titik awal dari ruang personal untuk menuangkan pikiran dan refleksi di tengah kebisingan dunia"
 pubDate: 2026-01-15
 tags: [intro, reflection, personal]
 updatedDate: "Oct 26 2025"
