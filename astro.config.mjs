@@ -59,7 +59,7 @@ export default defineConfig({
     clientPrerender: true,
   },
   build: {
-    format: "file",
+    format: "directory",
     inlineStylesheets: "auto",
   },
 });
