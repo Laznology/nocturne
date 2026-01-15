@@ -39,7 +39,7 @@ export default defineConfig({
     sitemap(),
     icon(),
     pagefind({
-      site: import.meta.env.PUBLIC_SITE_URL || "https://example.com",
+      site: "https://nocturne.laznology.dev",
       indexing: {
         glob: "**/blog/**",
         excludeSelectors: [
