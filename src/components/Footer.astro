@@ -1,0 +1,29 @@
+---
+const today = new Date();
+import { SITE_TITLE } from "../consts";
+---
+
+<footer class="border-t border-border border-dashed">
+  <div class="text-center text-sm text-muted-foreground pt-8 pb-4">
+    <p>&copy; {today.getFullYear()} {SITE_TITLE}. All rights reserved.</p>
+    <div class="mt-4 flex justify-center gap-4">
+      <a
+        class="text-blue-500 font-semibold hover:text-foreground"
+        href="/rss.xml">RSS</a
+      >
+      <a
+        class="text-blue-500 font-semibold hover:text-foreground"
+        href="/sitemap-index.xml">Sitemap</a
+      >
+    </div>
+    <p class="mt-4">
+      Powered by
+      <a
+        href="https://benkyouu.netlify.app"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-accent font-semibold">Benkyou</a
+      >
+    </p>
+  </div>
+</footer>

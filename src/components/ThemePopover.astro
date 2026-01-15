@@ -1,0 +1,323 @@
+---
+import { Icon } from "astro-icon/components";
+const uid = Math.random().toString(36).slice(2);
+const toggleId = `themeToggle-${uid}`;
+---
+
+<div class="relative group">
+  <input
+    type="checkbox"
+    id={toggleId}
+    data-theme-toggle
+    class="peer sr-only"
+    aria-label="Toggle theme popover"
+  />
+
+  <label
+    for={toggleId}
+    class="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-card hover:bg-muted/50 transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-accent/50 md:w-full md:px-4 md:py-3"
+  >
+    <div class="flex items-center gap-3">
+      <Icon name="mdi:palette" class="w-5 h-5 text-muted-foreground" />
+      <span class="text-sm font-medium hidden md:block">Theme</span>
+    </div>
+    <Icon
+      name="mdi:chevron-right"
+      class="w-4 h-4 text-muted-foreground transition-transform duration-200 peer-checked:rotate-90 hidden md:block"
+    />
+  </label>
+
+  <div
+    class="absolute bottom-full left-0 right-0 mb-2 p-4 bg-card rounded-lg opacity-0 scale-95 pointer-events-none transition-all duration-200 space-y-4 peer-checked:opacity-100 peer-checked:scale-100 peer-checked:pointer-events-auto z-50"
+    data-theme-popover
+  >
+    <div class="flex items-center justify-between">
+      <span class="text-sm font-medium">Mode</span>
+      <div class="flex items-center gap-2">
+        <button
+          data-dark-mode-toggle
+          class="flex items-center gap-2 px-3 py-2 rounded-md bg-muted hover:bg-muted/80 transition-colors cursor-pointer"
+          aria-label="Toggle dark mode"
+          type="button"
+        >
+          <Icon
+            name="mdi:white-balance-sunny"
+            class="w-4 h-4 hidden dark:block"
+          />
+          <Icon
+            name="mdi:moon-waning-crescent"
+            class="w-4 h-4 block dark:hidden"
+          />
+          <span class="text-sm dark:hidden">Dark</span>
+          <span class="text-sm hidden dark:block">Light</span>
+        </button>
+        <button
+          data-theme-close
+          class="md:hidden flex items-center justify-center w-8 h-8 rounded-md bg-muted hover:bg-muted/80 transition-colors cursor-pointer"
+          aria-label="Close theme modal"
+          type="button"
+        >
+          <Icon name="mdi:close" class="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+
+    <div class="space-y-2">
+      <label class="text-sm font-medium" for="accentColorInput"
+        >Accent Color</label
+      >
+      <input
+        id="accentColorInput"
+        type="range"
+        data-accent-picker
+        min="0"
+        max="360"
+        value="220"
+        class="w-full h-2 rounded-lg appearance-none cursor-pointer accent-slider"
+        aria-label="Select accent color hue"
+      />
+    </div>
+  </div>
+</div>
+
+<script>
+  function updateColors(hue: string) {
+    document.documentElement.style.setProperty("--accent-hue", hue);
+
+    const variations = [
+      { name: "--accent-50", lightness: "97%" },
+      { name: "--accent-100", lightness: "95%" },
+      { name: "--accent-200", lightness: "90%" },
+      { name: "--accent-300", lightness: "82%" },
+      { name: "--accent-400", lightness: "70%" },
+      { name: "--accent-500", lightness: "60%" },
+      { name: "--accent-600", lightness: "50%" },
+      { name: "--accent-700", lightness: "40%" },
+      { name: "--accent-800", lightness: "30%" },
+      { name: "--accent-900", lightness: "20%" },
+      { name: "--accent-950", lightness: "10%" },
+    ];
+
+    variations.forEach((variation) => {
+      document.documentElement.style.setProperty(
+        variation.name,
+        hue + " 100% " + variation.lightness,
+      );
+    });
+
+    const isDark = document.documentElement.classList.contains("dark");
+    const primaryLightness = isDark ? "60%" : "50%";
+    const primarySaturation = isDark ? "80%" : "100%";
+
+    document.documentElement.style.setProperty(
+      "--primary",
+      hue + " " + primarySaturation + " " + primaryLightness,
+    );
+
+    const bgAccentLightness = isDark ? "8%" : "98%";
+    const bgAccentSaturation = isDark ? "25%" : "15%";
+
+    document.documentElement.style.setProperty(
+      "--background-accent",
+      hue + " " + bgAccentSaturation + " " + bgAccentLightness,
+    );
+  }
+
+  function toggleTheme() {
+    const isDark = document.documentElement.classList.contains("dark");
+
+    document.documentElement.classList.remove("dark", "light");
+
+    if (isDark) {
+      document.documentElement.classList.add("light");
+      localStorage.setItem("theme", "light");
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    }
+
+    const currentHue = localStorage.getItem("accent-hue") || "220";
+    updateColors(currentHue);
+  }
+
+  function initThemePopovers() {
+    const popovers = document.querySelectorAll("[data-theme-popover]");
+
+    popovers.forEach((popover) => {
+      const darkModeToggle = popover.querySelector("[data-dark-mode-toggle]");
+      const accentColorPicker = popover.querySelector(
+        "[data-accent-picker]",
+      ) as HTMLInputElement;
+      const closeButton = popover.querySelector("[data-theme-close]");
+      const toggleInput = popover
+        .closest(".relative")
+        ?.querySelector("input[data-theme-toggle]") as HTMLInputElement;
+
+      if (darkModeToggle) {
+        const clonedToggle = darkModeToggle.cloneNode(true) as HTMLElement;
+        darkModeToggle.parentNode?.replaceChild(clonedToggle, darkModeToggle);
+
+        clonedToggle.addEventListener("click", toggleTheme);
+        clonedToggle.addEventListener("touchend", toggleTheme);
+      }
+
+      if (closeButton && toggleInput) {
+        const clonedCloseButton = closeButton.cloneNode(true) as HTMLElement;
+        closeButton.parentNode?.replaceChild(clonedCloseButton, closeButton);
+
+        clonedCloseButton.addEventListener("click", () => {
+          toggleInput.checked = false;
+        });
+      }
+
+      if (accentColorPicker) {
+        const savedHue = localStorage.getItem("accent-hue") || "220";
+        accentColorPicker.value = savedHue;
+        updateColors(savedHue);
+
+        const clonedPicker = accentColorPicker.cloneNode(
+          true,
+        ) as HTMLInputElement;
+        accentColorPicker.parentNode?.replaceChild(
+          clonedPicker,
+          accentColorPicker,
+        );
+        clonedPicker.value = savedHue;
+
+        clonedPicker.addEventListener(
+          "input",
+          function (this: HTMLInputElement) {
+            const hue = this.value;
+            updateColors(hue);
+            localStorage.setItem("accent-hue", hue);
+          },
+        );
+      }
+    });
+  }
+
+  initThemePopovers();
+  document.addEventListener("astro:page-load", initThemePopovers);
+</script>
+
+<style>
+  .accent-slider {
+    outline: none;
+    background: linear-gradient(
+      to right,
+      hsl(0, 100%, 50%),
+      hsl(60, 100%, 50%),
+      hsl(120, 100%, 50%),
+      hsl(180, 100%, 50%),
+      hsl(240, 100%, 50%),
+      hsl(300, 100%, 50%),
+      hsl(360, 100%, 50%)
+    );
+  }
+
+  .accent-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 3px solid rgb(var(--foreground));
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+  }
+
+  .accent-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .accent-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 3px solid rgb(var(--foreground));
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    border: none;
+  }
+
+  .accent-slider::-moz-range-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .accent-slider::-moz-range-track {
+    background: linear-gradient(
+      to right,
+      hsl(0, 100%, 50%),
+      hsl(60, 100%, 50%),
+      hsl(120, 100%, 50%),
+      hsl(180, 100%, 50%),
+      hsl(240, 100%, 50%),
+      hsl(300, 100%, 50%),
+      hsl(360, 100%, 50%)
+    );
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  @media (min-width: 769px) {
+    .relative {
+      position: relative !important;
+    }
+
+    .absolute {
+      position: absolute !important;
+      bottom: 100% !important;
+      left: 0 !important;
+      right: 0 !important;
+      top: auto !important;
+      transform: none !important;
+      margin-bottom: 0.5rem !important;
+      max-width: none !important;
+    }
+
+    .peer-checked:opacity-100.peer-checked:scale-100.peer-checked:pointer-events-auto {
+      transform: scale(1) !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .relative {
+      position: static !important;
+    }
+
+    label[for="themeToggle"] {
+      width: auto !important;
+      padding: 0.5rem !important;
+      border-radius: 0.5rem !important;
+      justify-content: center !important;
+      min-width: 2.5rem;
+      min-height: 2.5rem;
+    }
+
+    .absolute {
+      position: fixed !important;
+      left: 1rem !important;
+      right: 1rem !important;
+      bottom: auto !important;
+      top: 50% !important;
+      transform: translateY(-50%) scale(0.95) !important;
+      margin: 0 !important;
+      max-width: calc(100vw - 2rem);
+    }
+
+    .peer-checked:opacity-100.peer-checked:scale-100.peer-checked:pointer-events-auto {
+      transform: translateY(-50%) scale(1) !important;
+    }
+  }
+
+  #darkModeToggle {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    pointer-events: auto;
+  }
+</style>

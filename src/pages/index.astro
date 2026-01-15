@@ -1,0 +1,120 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getCollection, type CollectionEntry } from "astro:content";
+import FormattedDate from "../components/FormattedDate.astro";
+import { Icon } from "astro-icon/components";
+import readingTime from "reading-time";
+import { Image } from "astro:assets";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+
+const postsRaw = await getCollection("blog");
+const posts = postsRaw
+  .map((post: CollectionEntry<"blog">) => {
+    const stats = readingTime(post.body!);
+    return {
+      ...post,
+      readingTime: stats,
+      wordCount: stats.words,
+    };
+  })
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Layout
+  title={`Home - ${SITE_TITLE}`}
+  description={`${SITE_DESCRIPTION} - Discover the latest posts and insights`}
+>
+  <div class="space-y-6">
+    <div class="flex justify-between">
+      <h1 class="text-3xl font-semibold border-b-3 border-dashed w-fit">
+        Home
+      </h1>
+      <button
+        data-modal-trigger="search-modal"
+        class="hidden md:flex bg-accent items-center w-1/4 rounded-md cursor-pointer p-2 hover:bg-accent/80 transition-colors"
+      >
+        <Icon name="mdi:magnify" class="h-4 w-4 text-zinc-400" />
+        <span class="ml-2 flex-1 text select-none text-left">Search...</span>
+        <kbd
+          class="ml-2 rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-200 border border-zinc-700"
+          >Ctrl + K</kbd
+        >
+      </button>
+    </div>
+    <div class="space-y-6">
+      {
+        posts.map((post) => (
+          <a
+            href={`/blog/${post.id}/`}
+            class={`group bg-accent rounded-lg p-4 block ${post.data.heroImage ? "grid md:grid-cols-2 gap-4 md:items-stretch" : ""}`}
+          >
+            {post.data.heroImage && (
+              <div class="aspect-[16/9] w-full object-cover order-1 md:order-2">
+                {/* @ts-expect-error - Astro Image component supports both string URLs and ImageMetadata */}
+                <Image
+                  class="object-cover w-full h-full rounded-md"
+                  transition:name={`image-${post.id}`}
+                  src={post.data.heroImage}
+                  alt={post.data.title}
+                  width={1200}
+                  height={675}
+                  loading="lazy"
+                  decoding="async"
+                  fetchpriority="low"
+                  quality={80}
+                />
+              </div>
+            )}
+
+            <div
+              class={`flex flex-col justify-between ${post.data.heroImage ? "order-2 md:order-1" : ""}`}
+            >
+              <div class="space-y-2">
+                <div class="flex flex-wrap gap-2 items-center text-sm md:text-base">
+                  <span>
+                    Time : {Math.ceil(post.readingTime.minutes)} Minutes
+                  </span>
+                  {"|"}
+                  <span>Word : {post.wordCount}</span>
+                </div>
+
+                <h1
+                  class="text-lg md:text-3xl font-bold"
+                  transition:name={`title-${post.id}`}
+                >
+                  {post.data.title}
+                </h1>
+
+                <div class="text-xs md:text-sm text-muted-foreground flex flex-wrap gap-3">
+                  <div class="flex items-center gap-2">
+                    <Icon name="mdi:calendar" class="w-4 h-4 md:w-5 md:h-5" />
+                    <FormattedDate date={post.data.pubDate} />
+                  </div>
+                  {post?.data?.tags && (
+                    <div class="flex gap-2 items-center">
+                      <Icon name="mdi:tag" class="w-4 h-4 md:w-5 md:h-5" />
+                      {post.data.tags.map((tag, i) => (
+                        <span
+                          class="text-xs md:text-sm hover:text-accent transition-colors cursor-pointer relative z-10"
+                          style="pointer-events: auto;"
+                          onclick={`event.preventDefault(); event.stopPropagation(); window.location.href='/tags/${tag}'`}
+                        >
+                          {tag.charAt(0).toUpperCase() + tag.slice(1)}
+                          {i < post.data.tags!.length - 1 ? " /" : ""}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <p class="mt-2 text-sm md:text-base line-clamp-2 text-ellipsis">
+                  {post.data.description}
+                </p>
+              </div>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</Layout>
