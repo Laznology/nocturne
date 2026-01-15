@@ -26,7 +26,7 @@ export default defineConfig({
       },
     ],
   },
-  site: import.meta.env.PUBLIC_SITE_URL || "https://example.com",
+  site: "https://nocturne.laznology.dev",
   devToolbar: {
     enabled: false,
   },
